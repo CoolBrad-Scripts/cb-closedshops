@@ -57,6 +57,3 @@ Config.ClosedShops = {
         targetDistance = 1.5,
     }
 }
-
-Config.WebhookName = "Cool Brad Scripts"
-Config.WebhookUrl = "https://discord.com/api/webhooks/1292182241757364224/yhAdmscthjGKG_x2ACL79qSG_neeQVwC6E1xEgo4ohw5EllW7eC-l35Njrgo-BMCBpJY"

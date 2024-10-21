@@ -1,5 +1,7 @@
 Framework = nil
 UsingOxInventory = false
+WebhookName = "Cool Brad Scripts"
+WebhookUrl = "CHANGEME"
 if GetResourceState('qbx_core') == 'started' then
     Framework = "qbox"
 elseif GetResourceState('qb-core') == 'started' then
@@ -163,6 +165,6 @@ function GetItemImage(item)
 end
 
 function DiscordLog(data)
-    PerformHttpRequest(DiscordWebhook.url, function() end, 'POST',
-        json.encode({ username = DiscordWebhook.name, content = data }), { ['Content-Type'] = 'application/json' })
+    PerformHttpRequest(WebhookUrl, function() end, 'POST',
+        json.encode({ username = WebhookName, content = data }), { ['Content-Type'] = 'application/json' })
 end
