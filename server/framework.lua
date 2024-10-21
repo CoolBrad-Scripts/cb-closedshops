@@ -12,11 +12,6 @@ if GetResourceState('ox_inventory') == 'started' then
     UsingOxInventory = true
 end
 
-local DiscordWebhook = {
-    url = Config.WebhookURL,
-    name = Config.WebhookName,
-}
-
 function SQLQuery(query, params)
     if params then
         return MySQL.query.await(query, params)
