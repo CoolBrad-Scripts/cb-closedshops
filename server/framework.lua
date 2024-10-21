@@ -10,6 +10,11 @@ if GetResourceState('ox_inventory') == 'started' then
     UsingOxInventory = true
 end
 
+local DiscordWebhook = {
+    url = Config.WebhookURL,
+    name = Config.WebhookName,
+}
+
 function SQLQuery(query, params)
     if params then
         return MySQL.query.await(query, params)
@@ -155,4 +160,9 @@ function GetItemImage(item)
     else
         return "nui://" .. Config.InventoryImage .. QBCore.Shared.Items[item].image
     end
+end
+
+function DiscordLog(data)
+    PerformHttpRequest(DiscordWebhook.url, function() end, 'POST',
+        json.encode({ username = DiscordWebhook.name, content = data }), { ['Content-Type'] = 'application/json' })
 end

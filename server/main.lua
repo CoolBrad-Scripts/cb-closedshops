@@ -118,6 +118,16 @@ lib.callback.register('cb-closedshops:server:AddStock', function(source, item, a
     local Player = GetPlayer(src)
     if Player == nil then return end
     local job = Player.PlayerData.job.name
+    local coords = GetPlayerCoords(src)
+    for k, v in pairs(Config.ClosedShops) do
+        if v.job == job then
+            local dist = #(vector3(v.coords.x, v.coords.y, v.coords.z) - coords)
+            if dist > 5.0 then
+                DiscordLog(string.format("%s attempted to add stock to %s from a distance of %.0f. Possibly Cheating", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname, job, dist))
+                return false
+            end
+        end
+    end
     if Player == nil then return false end
 
     -- Remove item from player's inventory (if applicable)
@@ -160,6 +170,17 @@ lib.callback.register('cb-closedshops:server:RemoveStock', function(source, item
     if Player == nil then return false end
 
     local job = Player.PlayerData.job.name
+    local coords = GetPlayerCoords(src)
+    for k, v in pairs(Config.ClosedShops) do
+        if v.job == job then
+            local dist = #(vector3(v.coords.x, v.coords.y, v.coords.z) - coords)
+            if dist > 5.0 then
+                DiscordLog(string.format("%s attempted to remove stock to %s from a distance of %.0f. Possibly Cheating", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname, job, dist))
+                return false
+            end
+        end
+    end
+
 
     if UsingOxInventory then
         -- Query to get the current amount of the item in stock for the player's job/business
@@ -286,6 +307,5 @@ end
 
 RegisterNetEvent('cb-closedshops:server:DeletePed')
 AddEventHandler('cb-closedshops:server:DeletePed', function(ped)
-    print(ped)
     TriggerClientEvent('cb-closedshops:client:DeletePed', -1, ped)
 end)

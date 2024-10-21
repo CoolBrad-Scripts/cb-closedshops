@@ -33,7 +33,7 @@ function AddStockMenu(job)
                 if addedToStock then
                     Notify("Success", "You have added " .. amount[1] .. " " .. GetItemLabel(item) .. " to the shop!", "success")
                 else
-                    Notify("Error", "Failed to add " .. amount[1] .. " " .. GetItemLabel(item) .. " to the shop!", "error")
+                    Notify("Error", "Failed to add " .. amount[1] .. " " .. GetItemLabel(item) .. " to the shop! Move closer and try again!", "error")
                 end
             end
         })
