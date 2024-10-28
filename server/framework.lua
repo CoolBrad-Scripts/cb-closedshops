@@ -2,6 +2,7 @@ Framework = nil
 UsingOxInventory = false
 WebhookName = "Cool Brad Scripts"
 WebhookUrl = "CHANGEME"
+lib.versionCheck('CoolBrad-Scripts/cb-closedshops')
 if GetResourceState('qbx_core') == 'started' then
     Framework = "qbox"
 elseif GetResourceState('qb-core') == 'started' then
