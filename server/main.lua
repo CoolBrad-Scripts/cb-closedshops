@@ -26,7 +26,6 @@ RegisterNetEvent('cb-closedshops:server:OnLoadSpawnShopPeds')
 AddEventHandler('cb-closedshops:server:OnLoadSpawnShopPeds', function()
     for _, shop in pairs(Config.ClosedShops) do
         local onDuty = GetDutyCount(shop.job)
-        print(onDuty, shop.job)
         if onDuty <= 0 then
             TriggerClientEvent('cb-closedshops:client:SpawnClosedShopPed', -1, shop.job)
             SpawnedShopPeds[shop.job] = true
@@ -69,8 +68,7 @@ CreateThread(function()
                         local Player = GetPlayer(payload.source)
                         if Player == nil then return end
                         local fullName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-                        exports['Renewed-Banking']:handleTransaction(payload.job, "Payment from Citizen", payload.totalPrice, "Payment from " .. fullName, fullName, "Vanilla Unicorn", "deposit")
-                        exports['Renewed-Banking']:addAccountMoney(payload.job, payload.totalPrice)
+                        AddMoneyToJobAccount(shop.job, payload.totalPrice, fullName)
                         return true
                     else
                         return false

@@ -21,8 +21,9 @@ function SQLQuery(query, params)
     end
 end
 
-function AddMoneyToJobAccount(buyerId, employeeId, amount, paymenttype, job, BuyerFullName, jobLabel)
-    -- Your custom code here
+function AddMoneyToJobAccount(job, price, buyerName)
+    exports['Renewed-Banking']:handleTransaction(job, "Payment from Citizen", price, "Payment from " .. buyerName, buyerName, job, "deposit")
+    exports['Renewed-Banking']:addAccountMoney(job, price)
 end
 
 function GetPlayer(target)
