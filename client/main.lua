@@ -167,30 +167,56 @@ local function spawnClosedShopPedForPlayer(job)
                     ClosedShopPeds[job] = {}
                 end
                 table.insert(ClosedShopPeds[job], closedShopPed)
-
-                exports.ox_target:addLocalEntity(closedShopPed, {
-                    {
-                        label = shopData.label,
-                        icon = "fa-solid fa-shopping-cart",
+                if Config.Target == "ox" then
+                    exports.ox_target:addLocalEntity(closedShopPed, {
+                        {
+                            label = shopData.label,
+                            icon = "fa-solid fa-shopping-cart",
+                            distance = shopData.targetDistance,
+                            onSelect = function()
+                                exports.ox_inventory:openInventory('shop', { type = job, id = 1 })
+                            end,
+                        },
+                        {
+                            label = "Manage Shop",
+                            icon = "fa-solid fa-shopping-cart",
+                            distance = shopData.targetDistance,
+                            onSelect = function()
+                                OpenShopMenu(job)
+                            end,
+                            canInteract = function()
+                                local PlayerData = GetPlayerData()
+                                local playerJob = PlayerData.job.name
+                                return (ClosedShopPeds[playerJob] ~= nil) and (playerJob == job)
+                            end
+                        },
+                    })
+                else
+                    exports['qb-target']:AddTargetEntity(closedShopPed, {
+                        options = {
+                            {
+                                label = shopData.label,
+                                icon = "fa-solid fa-shopping-cart",
+                                action = function()
+                                    exports.ox_inventory:openInventory('shop', { type = job, id = 1 })
+                                end,
+                            },
+                            {
+                                label = "Manage Shop",
+                                icon = "fa-solid fa-shopping-cart",
+                                action = function()
+                                    OpenShopMenu(job)
+                                end,
+                                canInteract = function()
+                                    local PlayerData = GetPlayerData()
+                                    local playerJob = PlayerData.job.name
+                                    return (ClosedShopPeds[playerJob] ~= nil) and (playerJob == job)
+                                end
+                            },
+                        },
                         distance = shopData.targetDistance,
-                        onSelect = function()
-                            exports.ox_inventory:openInventory('shop', { type = job, id = 1 })
-                        end,
-                    },
-                    {
-                        label = "Manage Shop",
-                        icon = "fa-solid fa-shopping-cart",
-                        distance = shopData.targetDistance,
-                        onSelect = function()
-                            OpenShopMenu(job)
-                        end,
-                        canInteract = function()
-                            local PlayerData = GetPlayerData()
-                            local playerJob = PlayerData.job.name
-                            return (ClosedShopPeds[playerJob] ~= nil) and (playerJob == job)
-                        end
-                    },
-                })
+                    })
+                end
             else
                 lib.print.error("Failed to create the shop ped at " .. tostring(coords))
             end

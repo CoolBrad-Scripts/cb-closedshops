@@ -1,4 +1,5 @@
 Config = {}
+Config.Target = "ox" -- Supports: "qb" / "ox"
 Config.ClosedShops = {
     [1] = {
         job = "whitewidow",
