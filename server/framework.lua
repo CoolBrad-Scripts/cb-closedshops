@@ -92,12 +92,37 @@ function HasItem(source, item, amount)
     end
 end
 
+function GetCashAmount(source, amount)
+    local src = source
+    local player = GetPlayer(src)
+    if player then
+        return player.PlayerData.money.cash
+    end
+end
+
+function AddMoney(source, amount)
+    local src = source
+    local player = GetPlayer(src)
+    if player then
+        if player.Functions.AddMoney('cash', amount) then
+            return true
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
+
 function RemoveMoney(source, amount)
     local src = source
     local player = GetPlayer(src)
     if player then
-        player.Functions.RemoveMoney('cash', amount)
-        return true
+        if player.Functions.RemoveMoney('cash', amount) then
+            return true
+        else
+            return false
+        end
     else
         return false
     end
