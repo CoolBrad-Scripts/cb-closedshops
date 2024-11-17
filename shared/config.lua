@@ -4,6 +4,7 @@ Config.ClosedShops = {
     [1] = {
         job = "whitewidow",
         coords = vec4(187.95, -242.24, 53.07, 257.37),
+        shopName = "whitewidowshop",
         label = "White Widow Shop",
         allowedItems = {
             "weed_ak47_baggy",
@@ -32,6 +33,7 @@ Config.ClosedShops = {
     [2] = {
         job = "vanilla",
         coords = vec4(184.38, -248.31, 53.07, 159.16),
+        shopName = "vanillashop",
         label = "Vanilla Unicorn Shop",
         allowedItems = {
             "weed_ak47_baggy",

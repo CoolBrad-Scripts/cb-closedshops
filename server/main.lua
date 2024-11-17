@@ -31,7 +31,6 @@ AddEventHandler('cb-closedshops:server:OnLoadSpawnShopPeds', function()
         if onDuty <= 0 then
             TriggerClientEvent('cb-closedshops:client:SpawnClosedShopPed', source, shop.job)
             SpawnedShopPeds[shop.job] = true
-            UpdateClosedShop(shop.job)
         end
     end
 end)
@@ -51,17 +50,13 @@ AddEventHandler('onResourceStart', function(resourceName)
             SpawnedShopPeds[shop.job] = true
         end
     end
-
-    -- Call any other necessary update functions after spawning the peds
-    for _, shop in pairs(Config.ClosedShops) do
-        UpdateClosedShop(shop.job)
-    end
 end)
 
 CreateThread(function()
     if UsingOxInventory then
         local hookId = exports.ox_inventory:registerHook('buyItem', function(payload)
             for _, shop in pairs(Config.ClosedShops) do
+                print(shop)
                 if payload.shopType == shop.job then
                     local item = payload.itemName
                     local count = payload.count
@@ -100,6 +95,25 @@ lib.callback.register('cb-closedshops:server:GetStockItems', function(source, jo
     end
 end)
 
+lib.callback.register('cb-closedshops:server:GetShopItems', function(source, job)
+    local src = source
+    local query = [[ SELECT * FROM business_stock WHERE business = ? ]]
+    local result = SQLQuery(query, {job})
+    
+    -- Initialize an empty table to store all items
+    local data = {}
+
+    -- Loop through the result to gather items (if there are multiple rows)
+    for _, row in ipairs(result) do
+        table.insert(data, {
+            item = row.item,
+            amount = row.amount,
+            price = row.price
+        })
+    end
+    return data
+end)
+
 lib.callback.register('cb-closedshops:server:hasRequiredItem', function(source, item)
     local src = source
     if src == nil then return false end
@@ -109,6 +123,31 @@ lib.callback.register('cb-closedshops:server:hasRequiredItem', function(source, 
         return true
     else
         return false
+    end
+end)
+
+RegisterServerEvent('cb-closedshops:server:PurchaseItem', function(job, item, amount)
+    local src = source
+    local query = [[ SELECT amount, price FROM business_stock WHERE business = ? AND item = ? ]]
+    local result = SQLQuery(query, {job, item})
+    if not (result and #result > 0) then return end
+    local currentPrice = result[1].price
+    local currentAmount = result[1].amount
+    local cashAmount = GetCashAmount(src)
+    if amount > currentAmount then
+        TriggerClientEvent('cb-closedshops:client:Notify', src, "Too Much", "We don't have enough to fulfill this order", "error")
+    elseif cashAmount < (amount*currentPrice) then
+        TriggerClientEvent('cb-closedshops:client:Notify', src, "Not Enough Cash", "You don't have enough cash to pay for this!", "error")
+    else
+        if RemoveMoney(src, amount*currentPrice) then
+            if not AddItem(src, item, amount) then
+                if not AddMoney(src, amount*currentPrice) then
+                    print("Error Adding Money to Player")
+                end
+            else
+                RemoveFromStock(item, amount, job)
+            end
+        end
     end
 end)
 
@@ -146,7 +185,6 @@ RegisterServerEvent('cb-closedshops:server:IncreaseBuyOrder', function(item, amo
                     WHERE business = ? AND item = ?
                 ]]
                 SQLQuery(updateQuery, {amount, currentPrice, job, item})
-                UpdateClosedShop(job)
             end
         end
     else
@@ -162,7 +200,6 @@ RegisterServerEvent('cb-closedshops:server:IncreaseBuyOrder', function(item, amo
                     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ]]
                 SQLQuery(insertQuery, {job, item, amount, price})
-                UpdateClosedShop(job)
             end
         end
     end
@@ -202,7 +239,6 @@ RegisterServerEvent('cb-closedshops:server:DecreaseBuyOrder', function(item, amo
                     WHERE business = ? AND item = ?
                 ]]
                 SQLQuery(updateQuery, {amount, currentPrice, job, item})
-                UpdateClosedShop(job)
             end
         end
     else
@@ -244,7 +280,6 @@ RegisterServerEvent('cb-closedshops:server:ChangePrice', function(item, price)
                     WHERE business = ? AND item = ?
                 ]]
                 SQLQuery(updateQuery, {newPrice, job, item})
-                UpdateClosedShop(job)
                 TriggerClientEvent('cb-closedshops:client:Notify', src, "Updated Buy Order", "The Buy Order was successfully updated!", "success")
             else
                 TriggerClientEvent('cb-closedshops:client:Notify', src, "Not Enough Cash", "You don't have enough cash to pay for these orders!", "error")
@@ -259,7 +294,6 @@ RegisterServerEvent('cb-closedshops:server:ChangePrice', function(item, price)
                     WHERE business = ? AND item = ?
                 ]]
                 SQLQuery(updateQuery, {newPrice, job, item})
-                UpdateClosedShop(job)
                 TriggerClientEvent('cb-closedshops:client:Notify', src, "Updated Buy Order", "The Buy Order was successfully updated!", "success")
             end
         end
@@ -305,44 +339,6 @@ function RemoveFromStock(item, amount, job)
     else
         -- OxInventory is not in use, handle accordingly
         return false
-    end
-end
-
-function UpdateClosedShop(job)
-    if UsingOxInventory then
-        -- Query to get the items and prices from the database for the specified job
-        local query = [[
-            SELECT item, price, amount FROM business_stock WHERE business = ?
-        ]]
-        local result = SQLQuery(query, {job})  -- Use the passed job to query
-
-        -- Prepare the inventory dynamically based on the result from the database
-        local inventory = {}
-
-        if result and #result > 0 then
-            for i = 1, #result do
-                table.insert(inventory, {
-                    name = result[i].item,
-                    price = result[i].price,
-                    count = result[i].amount,
-                    currency = 'money'
-                })
-            end
-        end
-
-        -- Register the shop with the dynamic inventory
-        for _, shop in pairs(Config.ClosedShops) do
-            if shop.job == job then
-                local uniquename = shop.job
-                exports.ox_inventory:RegisterShop(uniquename, {
-                    name = shop.job,
-                    inventory = inventory,
-                    locations = {
-                        vec3(shop.coords.x, shop.coords.y, shop.coords.z)
-                    }
-                })
-            end
-        end
     end
 end
 

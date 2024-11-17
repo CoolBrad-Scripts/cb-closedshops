@@ -91,6 +91,33 @@ function AddStockMenu(job)
     lib.showContext('AddStockMenu')
 end
 
+function OpenClosedShop(job)
+    local menuOptions = {}
+    local shopItems = lib.callback.await('cb-closedshops:server:GetShopItems', false, job)
+    for k,v in pairs(shopItems) do
+        table.insert(menuOptions, {
+            title = GetItemLabel(v.item),
+            description = "Current Price: $" .. v.price .. "\nAmount: " .. v.amount,
+            icon = GetItemImage(v.item),
+            arrow = true,
+            disabled = not (v.amount > 0),
+            onSelect = function()
+                local amount = lib.inputDialog('Current Price: $'..v.price, {
+                    {type = 'number', label = 'Amount', description = 'Enter the amount you are willing to buy!', required = true, min = 1, max = v.amount},
+                })
+                TriggerServerEvent('cb-closedshops:server:PurchaseItem', job, v.item, amount[1])
+            end
+        })
+    end
+
+    lib.registerContext({
+        id = 'ClosedShopMenu',
+        title = "Closed Shop",
+        options = menuOptions
+    })
+    lib.showContext('ClosedShopMenu')
+end
+
 function RemoveStockMenu(job)
     local menuOptions = {}
     
@@ -135,30 +162,6 @@ function RemoveStockMenu(job)
     
     -- Show the menu
     lib.showContext('RemoveStockMenu')
-end
-
-function OpenPricesMenu(job)
-    local menuOptions = {}
-    local stockItems = lib.callback.await('cb-closedshops:server:GetStockItems', false, job)
-    if not stockItems or #stockItems == 0 then
-        Notify("No Buy Orders", "You have no existing Buy Orders!", "error")
-        return
-    end
-    for k, v in ipairs(stockItems) do
-        table.insert(menuOptions, {
-            title = GetItemLabel(v.item),  -- Use the item label
-            description = "Current Price: $" .. v.price,
-            icon = GetItemImage(v.item),  -- Assume GetItemImage returns a valid icon
-            arrow = true,
-            disabled = v.amount <= 0,  -- Disable if no stock
-        })
-    end
-    lib.registerContext({
-        id = 'ViewPricesMenu',
-        title = "View Prices",
-        options = menuOptions
-    })
-    lib.showContext('ViewPricesMenu')
 end
 
 function OpenShopMenu(job)
@@ -240,19 +243,11 @@ local function spawnClosedShopPedForPlayer(job)
 
                 exports.ox_target:addLocalEntity(closedShopPed, {
                     {
-                        label = "View Prices",
-                        icon = "fa-solid fa-money-bill-wave",
-                        distance = shopData.targetDistance,
-                        onSelect = function()
-                            OpenPricesMenu(job)
-                        end,
-                    },
-                    {
                         label = shopData.label,
                         icon = "fa-solid fa-shopping-cart",
                         distance = shopData.targetDistance,
                         onSelect = function()
-                            exports.ox_inventory:openInventory('stash', job.."_pawnshop")
+                            OpenClosedShop(job)
                         end,
                     },
                     {

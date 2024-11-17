@@ -92,7 +92,7 @@ function HasItem(source, item, amount)
     end
 end
 
-function GetCashAmount(source, amount)
+function GetCashAmount(source)
     local src = source
     local player = GetPlayer(src)
     if player then
