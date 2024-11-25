@@ -12,7 +12,7 @@ AddEventHandler('QBCore:Server:SetDuty', function(source, onDuty)
                 SpawnedShopPeds[job] = true
                 break
             else
-                if not shop.allowOffline then
+                if not shop.alwaysOnline then
                     if SpawnedShopPeds[job] then
                         print("Deleting Closed Shop Peds")
                         TriggerClientEvent('cb-closedshops:client:DeleteShopPeds', -1, job)
