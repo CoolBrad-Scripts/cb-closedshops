@@ -7,17 +7,18 @@ AddEventHandler('QBCore:Server:SetDuty', function(source, onDuty)
     -- Loop through all closed shops in the config
     for _, shop in pairs(Config.ClosedShops) do
         if job == shop.job then
-            if GetDutyCount(job) == 0 then
-                -- Spawn the shop ped if no one is on duty
+            if GetDutyCount(job) == 0 and (SpawnedShopPeds[job] == nil) then
                 TriggerClientEvent('cb-closedshops:client:SpawnClosedShopPed', -1, job)
                 SpawnedShopPeds[job] = true
                 break
             else
-                if SpawnedShopPeds[job] then
-                    print("Deleting Closed Shop Peds")
-                    TriggerClientEvent('cb-closedshops:client:DeleteShopPeds', -1, job)
-                    SpawnedShopPeds[job] = false
-                    break
+                if not shop.allowOffline then
+                    if SpawnedShopPeds[job] then
+                        print("Deleting Closed Shop Peds")
+                        TriggerClientEvent('cb-closedshops:client:DeleteShopPeds', -1, job)
+                        SpawnedShopPeds[job] = false
+                        break
+                    end
                 end
             end
         end
